@@ -192,6 +192,7 @@ def peri_multiple_events_time_histogram(
         plt.figure()
         ax = plt.gca()
     # Plot the curves and add error bars
+    mean_max, bars_max = [], []
     for i, event_id in enumerate(np.unique(event_ids)):
         # Compute peths
         peths, binned_spikes = singlecell.calculate_peths(spike_times, spike_clusters, [cluster_id],
@@ -207,9 +208,11 @@ def peri_multiple_events_time_histogram(
             bars = np.zeros_like(mean)
         if error_bars != 'none':
             ax.fill_between(peths.tscale, mean - bars, mean + bars, **errbar_kwargs[i])
+        mean_max.append(mean.max())
+        bars_max.append(bars[mean.argmax()])
 
     # Plot the event marker line. Extends to 5% higher than max value of means plus any error bar.
-    plot_edge = (mean.max() + bars[mean.argmax()]) * 1.05
+    plot_edge = (np.max(mean_max) + bars_max[np.argmax(mean_max)]) * 1.05
     ax.vlines(0., 0., plot_edge, **eventline_kwargs)
     # Set the limits on the axes to t_before and t_after. Either set the ylim to the 0 and max
     # values of the PETH, or if we want to plot a spike raster below, create an equal amount of

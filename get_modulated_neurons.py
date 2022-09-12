@@ -7,7 +7,7 @@ By: Guido Meijer
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from os.path import join, isdir
+from os.path import join, isdir, isfile
 from matplotlib.ticker import FormatStrFormatter
 import seaborn as sns
 import pandas as pd
@@ -16,8 +16,10 @@ from brainbox.task.closed_loop import (responsive_units, roc_single_event, diffe
 from flipping_functions import (paths, load_session, figure_style, get_subjects,
                                 peri_multiple_events_time_histogram)
 from sklearn.utils import shuffle
+np.random.seed(42)  # fix random seed
 
 # Settings
+OVERWRITE = False
 PRE_TIME = 1
 POST_TIME = 1
 PLOT_PRE_TIME = 1
@@ -36,19 +38,35 @@ subjects = get_subjects()
 # Get sessions
 ses = [name for name in os.listdir(path_dict['data_path']) if os.path.isdir(join(path_dict['data_path'], name))]
 
+# Get df
+if OVERWRITE:
+    neurons_df = pd.DataFrame()
+else:
+    neurons_df = pd.read_csv(join(path_dict['data_path'], 'neurons_df.csv'))
+
 # Loop over sessions
-neurons_df = pd.DataFrame()
 for i, session in enumerate(ses):
 
     # Get details
     subject = session[:5]
     ses_name = session[6:8]
-    if subject not in subjects['subject'].values:
+
+    # Skip if data not there
+    if ((subject not in subjects['subject'].values)
+            or (isfile(join(path_dict['data_path'], session, 'Behavior&Spikes.mat')) == False)):
+        print('Not found')
         continue
+
+    # Skip if already done
+    if ~OVERWRITE and ((subject in neurons_df['subject'].values) & (ses_name in neurons_df['session'].values)):
+        print('Already done, skipping')
+        continue
+
+    # Get genotype
     sert_cre = subjects.loc[subjects['subject'] == subject, 'sert-cre'].values[0]
-    print(f'Starting session {session} ({i+1} of {len(ses)})')
 
     # Load in data
+    print(f'Starting session {session}')
     spikes, clusters, events = load_session(join(path_dict['data_path'], session))
 
     # Get modulation index
@@ -90,7 +108,10 @@ for i, session in enumerate(ses):
                 eventline_kwargs={'lw': 0}, include_raster=True)
             ax.set(ylabel='Firing rate (spikes/s)', xlabel='Time from first lick (s)',
                    yticks=np.linspace(0, np.round(ax.get_ylim()[1]), 3), xticks=[-1, 0, 1, 2, 3, 4])
-            ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+            if np.round(ax.get_ylim()[1]) % 2 == 0:
+                ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+            else:
+                ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
             sns.despine(trim=False)
             plt.tight_layout()
             plt.savefig(join(fig_path, f'{subject}_{session}_neuron{neuron_id}.jpg'), dpi=600)
