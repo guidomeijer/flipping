@@ -11,10 +11,10 @@ from os.path import join, isdir
 from matplotlib.ticker import FormatStrFormatter
 import seaborn as sns
 import pandas as pd
-from brainbox.plot import peri_event_time_histogram
 from brainbox.task.closed_loop import (responsive_units, roc_single_event, differentiate_units,
                                        roc_between_two_events)
-from flipping_functions import paths, load_session, figure_style, get_subjects
+from flipping_functions import (paths, load_session, figure_style, get_subjects,
+                                peri_multiple_events_time_histogram)
 from sklearn.utils import shuffle
 
 # Settings
@@ -79,33 +79,19 @@ for i, session in enumerate(ses):
     if PLOT:
         colors, dpi = figure_style()
         for n, neuron_id in enumerate(neuron_ids[sig_mod]):
-
             # Plot PSTH
-            colors, dpi = figure_style()
             p, ax = plt.subplots(1, 1, figsize=(1.75, 1.75), dpi=dpi)
-            peri_event_time_histogram(spikes.times, spikes.clusters,
-                                      events.first_lick_times[events.opto_stimulation == 1],
-                                      neuron_id, t_before=PLOT_PRE_TIME, t_after=PLOT_POST_TIME,
-                                      bin_size=BIN_SIZE,
-                                      include_raster=False, error_bars='sem', ax=ax,
-                                      pethline_kwargs={'color': colors['stim'], 'lw': 1},
-                                      errbar_kwargs={'color': colors['stim'], 'alpha': 0.3},
-                                      eventline_kwargs={'lw': 0})
-            this_y_lim = ax.get_ylim()
-            peri_event_time_histogram(spikes.times, spikes.clusters,
-                                      events.first_lick_times[events.opto_stimulation == 0],
-                                      neuron_id, t_before=PLOT_PRE_TIME, t_after=PLOT_POST_TIME,
-                                      bin_size=BIN_SIZE,
-                                      include_raster=False, error_bars='sem', ax=ax,
-                                      pethline_kwargs={'color': colors['no-stim'], 'lw': 1},
-                                      errbar_kwargs={'color': colors['no-stim'], 'alpha': 0.3},
-                                      eventline_kwargs={'lw': 0})
-            ax.set(ylim=[np.min([this_y_lim[0], ax.get_ylim()[0]]),
-                         np.max([this_y_lim[1], ax.get_ylim()[1]]) + np.max([this_y_lim[1], ax.get_ylim()[1]]) * 0.2])
+            peri_multiple_events_time_histogram(
+                spikes.times, spikes.clusters, events.first_lick_times, events.opto_stimulation,
+                neuron_id, t_before=PLOT_PRE_TIME, t_after=PLOT_POST_TIME, bin_size=BIN_SIZE, ax=ax,
+                pethline_kwargs=[{'color': colors['no-stim'], 'lw': 1}, {'color': colors['stim'], 'lw': 1}],
+                errbar_kwargs=[{'color': colors['no-stim'], 'alpha': 0.3}, {'color': colors['stim'], 'alpha': 0.3}],
+                raster_kwargs=[{'color': colors['no-stim'], 'lw': 0.5}, {'color': colors['stim'], 'lw': 0.5}],
+                eventline_kwargs={'lw': 0}, include_raster=True)
             ax.set(ylabel='Firing rate (spikes/s)', xlabel='Time from first lick (s)',
                    yticks=np.linspace(0, np.round(ax.get_ylim()[1]), 3), xticks=[-1, 0, 1, 2, 3, 4])
             ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-            sns.despine(trim=True, offset=2)
+            sns.despine(trim=False)
             plt.tight_layout()
-            plt.savefig(join(fig_path, f'{subject}_{session}_neuron{neuron_id}.pdf'))
+            plt.savefig(join(fig_path, f'{subject}_{session}_neuron{neuron_id}.jpg'), dpi=600)
             plt.close(p)
