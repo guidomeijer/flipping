@@ -15,6 +15,7 @@ import tkinter as tk
 from brainbox import singlecell
 from scipy.io import loadmat
 from os.path import join
+import pathlib
 from iblutil.util import Bunch
 from flipping_paths import DATA_PATH, FIG_PATH
 
@@ -23,6 +24,7 @@ def paths():
     paths = dict()
     paths['data_path'] = DATA_PATH
     paths['fig_path'] = FIG_PATH
+    paths['save_path'] = join(str(pathlib.Path(__file__).parent.resolve()), 'results')
     return paths
 
 

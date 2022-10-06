@@ -42,7 +42,7 @@ ses = [name for name in os.listdir(path_dict['data_path']) if os.path.isdir(join
 if OVERWRITE:
     neurons_df = pd.DataFrame()
 else:
-    neurons_df = pd.read_csv(join(path_dict['data_path'], 'neurons_df.csv'))
+    neurons_df = pd.read_csv(join(path_dict['save_path'], 'neurons_df.csv'))
 
 # Loop over sessions
 for i, session in enumerate(ses):
@@ -91,7 +91,7 @@ for i, session in enumerate(ses):
     neurons_df = pd.concat((neurons_df, pd.DataFrame(data={
         'subject': subject, 'session': ses_name, 'sert-cre': sert_cre,
         'neuron_id': neuron_ids, 'mod_index': mod_index, 'sig_mod': sig_mod})))
-    neurons_df.to_csv(join(path_dict['data_path'], 'neurons_df.csv'))
+    neurons_df.to_csv(join(path_dict['save_path'], 'neurons_df.csv'))
 
     # Plot significant neurons
     if PLOT:
@@ -116,3 +116,6 @@ for i, session in enumerate(ses):
             plt.tight_layout()
             plt.savefig(join(fig_path, f'{subject}_{session}_neuron{neuron_id}.jpg'), dpi=600)
             plt.close(p)
+
+# Save results
+neurons_df.to_csv(join(path_dict['save_path'], 'neurons_df.csv'))
