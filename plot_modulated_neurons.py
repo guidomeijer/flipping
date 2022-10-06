@@ -14,7 +14,7 @@ from flipping_functions import paths, figure_style
 path_dict = paths()
 
 # Load in dataframe
-neurons_df = pd.read_csv(join(path_dict['data_path'], 'neurons_df.csv'))
+neurons_df = pd.read_csv(join(path_dict['save_path'], 'neurons_df.csv'))
 sert_neurons = neurons_df[neurons_df['sert-cre'] == 1]
 wt_neurons = neurons_df[neurons_df['sert-cre'] == 0]
 
@@ -47,7 +47,7 @@ plt.savefig(join(path_dict['fig_path'], 'light_mod_summary.jpg'), dpi=600)
 # %%
 f, (ax1, ax2) = plt.subplots(1, 2, figsize=(3.5, 1.75), dpi=dpi)
 
-ax1.hist(sert_neurons.loc[sert_neurons['sig_mod'] == 0, 'mod_index'], color=colors['no-stim'], bins=6,
+ax1.hist(sert_neurons.loc[sert_neurons['sig_mod'] == 0, 'mod_index'], color=colors['no-stim'], bins=10,
          label='Not sig.')
 ax1.hist(sert_neurons.loc[sert_neurons['sig_mod'] == 1, 'mod_index'], color=colors['stim'], bins=25,
          label='Sig.')
@@ -57,9 +57,9 @@ ax1.legend(frameon=False, prop={'size': 5}, loc='upper left')
 sns.despine(trim=True)
 plt.tight_layout()
 
-ax2.hist(wt_neurons.loc[wt_neurons['sig_mod'] == 0, 'mod_index'], color=colors['no-stim'], bins=9,
+ax2.hist(wt_neurons.loc[wt_neurons['sig_mod'] == 0, 'mod_index'], color=colors['no-stim'], bins=25,
          label='Not sig.')
-ax2.hist(wt_neurons.loc[wt_neurons['sig_mod'] == 1, 'mod_index'], color=colors['stim'], bins=20,
+ax2.hist(wt_neurons.loc[wt_neurons['sig_mod'] == 1, 'mod_index'], color=colors['stim'], bins=10,
          label='Sig.')
 ax2.set(xticks=[-1, -0.5, 0, 0.5, 1], yscale='log', ylim=[1, 1000], yticklabels=[1, 10, 100, 1000],
         ylabel='Neuron count', xlabel='Modulation index', title='WT')

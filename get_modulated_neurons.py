@@ -53,14 +53,15 @@ for i, session in enumerate(ses):
 
     # Skip if data not there
     if ((subject not in subjects['subject'].values)
-            or (isfile(join(path_dict['data_path'], session, 'Behavior&Spikes.mat')) == False)):
-        print('Not found')
+            or (isfile(join(path_dict['data_path'], session, 'Behavior_Spikes.mat')) == False)):
+        print(f'{subject} {ses_name} not found')
         continue
 
     # Skip if already done
-    if ~OVERWRITE and ((subject in neurons_df['subject'].values) & (ses_name in neurons_df['session'].values)):
-        print('Already done, skipping')
-        continue
+    if not OVERWRITE:
+        if ((subject in neurons_df['subject'].values) & (ses_name in neurons_df['session'].values)):
+            print('Already done, skipping')
+            continue
 
     # Get genotype
     sert_cre = subjects.loc[subjects['subject'] == subject, 'sert-cre'].values[0]
@@ -119,3 +120,10 @@ for i, session in enumerate(ses):
 
 # Save results
 neurons_df.to_csv(join(path_dict['save_path'], 'neurons_df.csv'))
+
+# Restructure neuron df into sessions df and save
+sessions_df = neurons_df.groupby(['subject', 'session']).size().reset_index()
+sessions_df = sessions_df.rename(columns={0: 'n_neurons'})
+sessions_df['sig_mod'] = neurons_df.groupby(['subject', 'session']).sum().reset_index()['sig_mod']
+sessions_df['perc_mod'] = np.round((sessions_df['sig_mod'] / sessions_df['n_neurons']) * 100, 2)
+sessions_df.to_csv(join(path_dict['save_path'], 'sessions_df.csv'))

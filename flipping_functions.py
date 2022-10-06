@@ -68,7 +68,7 @@ def figure_style():
 def load_session(ses_path):
 
     # Load in MAT file
-    data = loadmat(join(ses_path, 'Behavior&Spikes.mat'))
+    data = loadmat(join(ses_path, 'Behavior_Spikes.mat'))
 
     # Get event times
     events = Bunch()
@@ -97,9 +97,25 @@ def load_session(ses_path):
 
 
 def get_subjects():
-    subjects_df = pd.DataFrame(data={
-        'subject': ['FC096', 'FC097', 'EA107', 'EA111', 'FC094', 'EA106'],
-        'sert-cre': [1, 1, 1, 1, 0, 0]})
+    path_dict = paths()
+    folder_file = open(join(path_dict['data_path'], 'FolderID_EA.txt'), 'r')
+    lines = folder_file.readlines()
+    sert_cre = None
+    subjects_df = pd.DataFrame(columns=['subject', 'sert-cre'])
+    for line in lines:
+        if line == 'SERT-CRE\n':
+            sert_cre = 1
+            continue
+        elif line == 'WT\n':
+            sert_cre = 0
+            continue
+        elif line == '\n':
+            continue
+        if sert_cre is not None:
+            subject = line[:5]
+            if subject not in subjects_df['subject'].values:
+                subjects_df = pd.concat((subjects_df, pd.DataFrame(index=[subjects_df.shape[0]+1], data={
+                    'subject': subject, 'sert-cre': sert_cre})))
     return subjects_df
 
 
