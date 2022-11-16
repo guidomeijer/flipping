@@ -59,8 +59,8 @@ for i, session in enumerate(ses):
 
     # Skip if already done
     if not OVERWRITE:
-        if ((subject in neurons_df['subject'].values) & (ses_name in neurons_df['session'].values)):
-            print('Already done, skipping')
+        if (ses_name in neurons_df.loc[neurons_df['subject'] == subject, 'session'].values):
+            print(f'{subject} {ses_name} already done, skipping')
             continue
 
     # Get genotype
